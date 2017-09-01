@@ -27,27 +27,27 @@ type MetricTensor interface {
 	ToString() string
 }
 
-type bkTreeNode struct {
+type BkTreeNode struct {
 	MetricTensor
-	Children map[Distance]*bkTreeNode
+	Children map[Distance]*BkTreeNode
 }
 
-func (node *bkTreeNode) MarshalJSON() ([]byte, error) {
+func (node *BkTreeNode) MarshalJSON() ([]byte, error) {
 	var array = make([]interface{}, 2)
 	array[0] = node.MetricTensor.ToString()
 	array[1] = node.Children
 	return ffjson.Marshal(array)
 }
 
-func newbkTreeNode(v MetricTensor) *bkTreeNode {
-	return &bkTreeNode{
+func newbkTreeNode(v MetricTensor) *BkTreeNode {
+	return &BkTreeNode{
 		MetricTensor: v,
-		Children:     make(map[Distance]*bkTreeNode),
+		Children:     make(map[Distance]*BkTreeNode),
 	}
 }
 
 type BKTree struct {
-	Root *bkTreeNode
+	Root *BkTreeNode
 }
 
 func (tree *BKTree) ToJson() ([]byte, error) {
@@ -75,7 +75,7 @@ func (tree *BKTree) Add(val MetricTensor) {
 }
 
 func (tree *BKTree) Search(val MetricTensor, radius Distance) []MetricTensor {
-	candidates := make([]*bkTreeNode, 0, 10)
+	candidates := make([]*BkTreeNode, 0, 10)
 	candidates = append(candidates, tree.Root)
 	results := make([]MetricTensor, 0, 5)
 	for {
@@ -104,7 +104,7 @@ var numCPU = runtime.NumCPU()
 // implementation. Turns out it DID NOT.
 func (tree *BKTree) SearchAsync(val MetricTensor, radius Distance) []MetricTensor {
 	results := make([]MetricTensor, 0, 5)
-	candsChan := make(chan *bkTreeNode, 100)
+	candsChan := make(chan *BkTreeNode, 100)
 	candsChan <- tree.Root
 LOOP:
 	for {
