@@ -47,6 +47,7 @@ func newbkTreeNode(v MetricTensor) *BkTreeNode {
 }
 
 type BKTree struct {
+	Size int
 	Root *BkTreeNode
 }
 
@@ -65,9 +66,15 @@ func (tree *BKTree) Add(val MetricTensor) {
 	curNode := tree.Root
 	for {
 		dist := curNode.DistanceFrom(val)
+		// If distance is zero which means two Metrics
+		// are exactly the same, return directly
+		if dist == 0 {
+			break
+		}
 		target := curNode.Children[dist]
 		if target == nil {
 			curNode.Children[dist] = node
+			tree.Size += 1
 			break
 		}
 		curNode = target
