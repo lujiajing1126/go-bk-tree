@@ -71,6 +71,7 @@ func (tree *BKTree) ToJson() ([]byte, error) {
 func (tree *BKTree) Add(val MetricTensor) {
 	node := newbkTreeNode(val)
 	if tree.Root == nil {
+		tree.Size = 1
 		tree.Root = node
 		return
 	}
