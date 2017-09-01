@@ -74,7 +74,8 @@ func (tree *BKTree) Add(val MetricTensor) {
 	}
 }
 
-func (tree *BKTree) Search(val MetricTensor, radius Distance) []MetricTensor {
+func (tree *BKTree) Search(val MetricTensor, radius Distance) ([]MetricTensor, int) {
+	count := 0
 	candidates := make([]*BkTreeNode, 0, 10)
 	candidates = append(candidates, tree.Root)
 	results := make([]MetricTensor, 0, 5)
@@ -82,6 +83,7 @@ func (tree *BKTree) Search(val MetricTensor, radius Distance) []MetricTensor {
 		cand := candidates[0]
 		candidates = candidates[1:]
 		dist := cand.DistanceFrom(val)
+		count += 1
 		if dist <= radius {
 			results = append(results, cand.MetricTensor)
 		}
@@ -95,7 +97,7 @@ func (tree *BKTree) Search(val MetricTensor, radius Distance) []MetricTensor {
 			break
 		}
 	}
-	return results
+	return results, count
 }
 
 var numCPU = runtime.NumCPU()
