@@ -46,6 +46,17 @@ func newbkTreeNode(v MetricTensor) *BkTreeNode {
 	}
 }
 
+func (node *BkTreeNode) getSize() int {
+	if len(node.Children) == 0 {
+		return 1
+	}
+	count := 1
+	for _, child := range node.Children {
+		count += child.getSize()
+	}
+	return count
+}
+
 type BKTree struct {
 	Size int
 	Root *BkTreeNode
@@ -79,6 +90,10 @@ func (tree *BKTree) Add(val MetricTensor) {
 		}
 		curNode = target
 	}
+}
+
+func (tree *BKTree) CalculateSize() {
+	tree.Size = tree.Root.getSize()
 }
 
 func (tree *BKTree) Search(val MetricTensor, radius Distance) ([]MetricTensor, int) {
