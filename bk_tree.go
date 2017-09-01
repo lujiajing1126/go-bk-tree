@@ -6,6 +6,8 @@ package go_bk_tree
 import (
 	"runtime"
 	"time"
+
+	"github.com/pquerna/ffjson/ffjson"
 )
 
 type Distance int
@@ -22,11 +24,19 @@ type Distance int
 //  }
 type MetricTensor interface {
 	DistanceFrom(other MetricTensor) Distance
+	ToString() string
 }
 
 type bkTreeNode struct {
 	MetricTensor
 	Children map[Distance]*bkTreeNode
+}
+
+func (node *bkTreeNode) MarshalJSON() ([]byte, error) {
+	var array = make([]interface{}, 2)
+	array[0] = node.MetricTensor.ToString()
+	array[1] = node.Children
+	return ffjson.Marshal(array)
 }
 
 func newbkTreeNode(v MetricTensor) *bkTreeNode {
@@ -37,18 +47,22 @@ func newbkTreeNode(v MetricTensor) *bkTreeNode {
 }
 
 type BKTree struct {
-	root *bkTreeNode
+	Root *bkTreeNode
+}
+
+func (tree *BKTree) ToJson() ([]byte, error) {
+	return ffjson.Marshal(tree.Root)
 }
 
 // Add a node to BK-Tree, the location of the new node
 // depends on how distance between different tensors are defined
 func (tree *BKTree) Add(val MetricTensor) {
 	node := newbkTreeNode(val)
-	if tree.root == nil {
-		tree.root = node
+	if tree.Root == nil {
+		tree.Root = node
 		return
 	}
-	curNode := tree.root
+	curNode := tree.Root
 	for {
 		dist := curNode.DistanceFrom(val)
 		target := curNode.Children[dist]
@@ -62,7 +76,7 @@ func (tree *BKTree) Add(val MetricTensor) {
 
 func (tree *BKTree) Search(val MetricTensor, radius Distance) []MetricTensor {
 	candidates := make([]*bkTreeNode, 0, 10)
-	candidates = append(candidates, tree.root)
+	candidates = append(candidates, tree.Root)
 	results := make([]MetricTensor, 0, 5)
 	for {
 		cand := candidates[0]
@@ -91,7 +105,7 @@ var numCPU = runtime.NumCPU()
 func (tree *BKTree) SearchAsync(val MetricTensor, radius Distance) []MetricTensor {
 	results := make([]MetricTensor, 0, 5)
 	candsChan := make(chan *bkTreeNode, 100)
-	candsChan <- tree.root
+	candsChan <- tree.Root
 LOOP:
 	for {
 		select {
